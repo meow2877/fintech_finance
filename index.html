@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bajaj Finserv Digital Lending & Underwriting Engine</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for Interactive Charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bajaj: {
+                            navy: '#002B5B',
+                            blue: '#0056B3',
+                            accent: '#00A8FF',
+                            light: '#F4F7FA',
+                            dark: '#0A192F',
+                            card: '#112240',
+                            border: '#233554'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0A192F;
+            color: #E2E8F0;
+        }
+        .glow-effect {
+            box-shadow: 0 0 25px -5px rgba(0, 168, 255, 0.25);
+        }
+        .glow-effect-success {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+        }
+        .glow-effect-warning {
+            box-shadow: 0 0 25px -5px rgba(245, 158, 11, 0.3);
+        }
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(0, 168, 255, 0.1) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A192F;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233554;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0056B3;
+        }
+    </style>
+</head>
+<body class="bg-grid-pattern min-h-screen pb-12">
+
+    <!-- Navigation Bar -->
+    <nav class="sticky top-0 z-40 bg-bajaj-dark/90 backdrop-blur-md border-b border-bajaj-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-bajaj-navy to-bajaj-accent flex items-center justify-center font-extrabold text-white text-xl shadow-lg shadow-bajaj-accent/20">
+                    B
+                </div>
+                <div>
+                    <span class="font-extrabold text-lg text-white tracking-tight">BAJAJ <span class="text-bajaj-accent">FINSERV</span></span>
+                    <span class="hidden sm:inline-block text-xs bg-bajaj-blue/30 text-bajaj-accent px-2 py-0.5 rounded-full ml-2 border border-bajaj-accent/30 font-semibold">FINTECH PORTAL</span>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Buttons -->
+            <div class="flex items-center space-x-1 sm:space-x-2 bg-bajaj-card p-1 rounded-xl border border-bajaj-border">
+                <button onclick="switchTab('simulator')" id="btn-tab-simulator" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center space-x-2 bg-bajaj-blue text-white shadow">
+                    <i data-lucide="cpu" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Underwriting Simulator</span>
+                    <span class="md:hidden">Simulator</span>
+                </button>
+                <button onclick="switchTab('tax')" id="btn-tab-tax" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all flex items-center space-x-2">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Tax & Yield Engine</span>
+                    <span class="md:hidden">Tax Engine</span>
+                </button>
+                <button onclick="switchTab('analytics')" id="btn-tab-analytics" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition-all flex items-center space-x-2">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                    <span class="hidden md:inline">Power BI Analytics</span>
+                    <span class="md:hidden">Analytics</span>
+                </button>
+            </div>
+
+            <!-- Presenter Script Button -->
+            <button onclick="toggleScriptDrawer()" class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3 py-1.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center space-x-2">
+                <i data-lucide="presentation" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Presenter Assistant</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Executive Title Banner -->
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-4">
+        <div class="bg-gradient-to-r from-bajaj-card via-bajaj-navy/60 to-bajaj-card border border-bajaj-border rounded-2xl p-6 relative overflow-hidden shadow-2xl">
+            <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-bajaj-accent/10 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                <div>
+                    <div class="flex items-center space-x-2 text-xs font-bold text-bajaj-accent tracking-widest uppercase mb-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span>Academic Case Study Demonstration</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">
+                        Fintech Transformation & Valuation: <span class="text-transparent bg-clip-text bg-gradient-to-r from-bajaj-accent to-blue-400">The Bajaj Finserv Omni-Channel Model</span>
+                    </h1>
+                    <p class="mt-2 text-sm text-slate-300 max-w-3xl">
+                        Interactive practical portal demonstrating API-driven digital lending, straight-through algorithmic credit underwriting, operational leverage metrics, and investor tax optimization.
+                    </p>
+                </div>
+
+                <!-- Tech Badges -->
+                <div class="flex flex-wrap gap-2 lg:max-w-xs justify-start lg:justify-end">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 mr-1.5"></i> DigiLocker e-KYC
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <i data-lucide="network" class="w-3.5 h-3.5 mr-1.5"></i> Account Aggregator API
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                        <i data-lucide="cpu" class="w-3.5 h-3.5 mr-1.5"></i> Algorithmic Underwriting
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <i data-lucide="percent" class="w-3.5 h-3.5 mr-1.5"></i> Sec 112A Tax Engine
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+        
+        <!-- ================= TAB 1: UNDERWRITING SIMULATOR ================= -->
+        <section id="tab-simulator" class="tab-content block space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                
+                <!-- Left: Application Input Form -->
+                <div class="lg:col-span-5 bg-bajaj-card border border-bajaj-border rounded-2xl p-6 shadow-xl relative">
+                    <div class="flex items-center justify-between pb-4 mb-4 border-b border-bajaj-border">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="file-text" class="w-5 h-5 text-bajaj-accent"></i>
+                            <h2 class="text-lg font-bold text-white">Loan Application Form</h2>
+                        </div>
+                        <span class="text-xs bg-bajaj-navy px-2.5 py-1 rounded-md text-slate-300 font-mono border border-bajaj-border">API Payload v2.4</span>
+                    </div>
+
+                    <form id="loanForm" onsubmit="runUnderwritingSimulator(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Applicant Full Name</label>
+                            <div class="relative">
+                                <input type="text" id="custName" value="Rahul Sharma" required class="w-full bg-bajaj-dark border border-bajaj-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-bajaj-accent transition">
+                                <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute right-3.5 top-3"></i>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Monthly Income (₹)</label>
+                                <input type="number" id="monthlyIncome" value="95000" min="10000" step="5000" oninput="updateCalculatedFields()" required class="w-full bg-bajaj-dark border border-bajaj-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-bajaj-accent transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Existing EMIs (₹/mo)</label>
+                                <input type="number" id="existingEMIs" value="18000" min="0" step="1000" oninput="updateCalculatedFields()" required class="w-full bg-bajaj-dark border border-bajaj-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-bajaj-accent transition">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Desired Loan Amount (₹)</label>
+                                <input type="number" id="loanAmount" value="450000" min="20000" step="10000" oninput="updateCalculatedFields()" required class="w-full bg-bajaj-dark border border-bajaj-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-bajaj-accent transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Tenure (Months)</label>
+                                <select id="loanTenure" onchange="updateCalculatedFields()" class="w-full bg-bajaj-dark border border-bajaj-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-bajaj-accent transition">
+                                    <option value="12">12 Months</option>
+                                    <option value="24">24 Months</option>
+                                    <option value="36" selected>36 Months</option>
+                                    <option value="48">48 Months</option>
+                                    <option value="60">60 Months</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- CIBIL Slider -->
+                        <div class="pt-2">
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold text-slate-300 flex items-center">
+                                    CIBIL Bureau Score
+                                    <span class="ml-1.5 text-[10px] text-slate-400">(Threshold: &ge; 750)</span>
+                                </label>
+                                <span id="cibilValDisplay" class="text-sm font-bold text-bajaj-accent bg-bajaj-dark px-2.5 py-0.5 rounded border border-bajaj-border">780</span>
+                            </div>
+                            <input type="range" id="cibilScore" min="300" max="900" value="780" oninput="document.getElementById('cibilValDisplay').innerText=this.value; updateCalculatedFields();" class="w-full accent-bajaj-accent cursor-pointer">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-semibold mt-1">
+                                <span class="text-rose-400">300 (High Risk)</span>
+                                <span class="text-amber-400">650</span>
+                                <span class="text-emerald-400">750 (Auto Threshold)</span>
+                                <span class="text-emerald-400">900 (Excellent)</span>
+                            </div>
+                        </div>
+
+                        <!-- Live Estimated DTI Preview -->
+                        <div class="p-3 bg-bajaj-dark/60 rounded-xl border border-bajaj-border/80 flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Estimated Project DTI Ratio:</span>
+                            <span id="estimatedDTIDisplay" class="font-mono font-bold text-emerald-400">34.2% (Passes &le; 40%)</span>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" id="btnSubmitSimulator" class="w-full py-3.5 px-4 bg-gradient-to-r from-bajaj-blue to-bajaj-accent hover:from-bajaj-navy hover:to-bajaj-blue text-white font-bold rounded-xl shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 group">
+                            <i data-lucide="play" class="w-4 h-4 fill-current group-hover:scale-110 transition-transform"></i>
+                            <span>RUN ALGORITHMIC UNDERWRITING</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Right: Live Pipeline Visualizer & Output -->
+                <div class="lg:col-span-7 space-y-6">
+                    
+                    <!-- Underwriting Pipeline Progress -->
+                    <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-6 shadow-xl">
+                        <div class="flex items-center justify-between pb-4 border-b border-bajaj-border mb-4">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="workflow" class="w-5 h-5 text-bajaj-accent"></i>
+                                <h3 class="text-lg font-bold text-white">Underwriting Pipeline Visualizer</h3>
+                            </div>
+                            <span id="pipelineStatusBadge" class="text-xs bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700">Idle / Ready</span>
+                        </div>
+
+                        <!-- Pipeline Steps -->
+                        <div class="space-y-3.5" id="pipelineStepsContainer">
+                            
+                            <!-- Step 1 -->
+                            <div id="p-step-1" class="p-3 rounded-xl border border-bajaj-border bg-bajaj-dark/40 flex items-center justify-between transition-all">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 rounded-lg bg-slate-800 text-slate-400 step-icon">
+                                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white">Step 1: DigiLocker e-KYC Verification</p>
+                                        <p class="text-[11px] text-slate-400 step-desc">Pulls verified Aadhaar & PAN details via India Stack API</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-mono font-semibold text-slate-500 step-status">Pending</span>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div id="p-step-2" class="p-3 rounded-xl border border-bajaj-border bg-bajaj-dark/40 flex items-center justify-between transition-all">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 rounded-lg bg-slate-800 text-slate-400 step-icon">
+                                        <i data-lucide="landmark" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white">Step 2: Account Aggregator Cash Flow Analysis</p>
+                                        <p class="text-[11px] text-slate-400 step-desc">Calculates Debt-to-Income (DTI) ratio from real bank statements</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-mono font-semibold text-slate-500 step-status">Pending</span>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div id="p-step-3" class="p-3 rounded-xl border border-bajaj-border bg-bajaj-dark/40 flex items-center justify-between transition-all">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 rounded-lg bg-slate-800 text-slate-400 step-icon">
+                                        <i data-lucide="gauge" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white">Step 3: CIBIL Scorecard Evaluation</p>
+                                        <p class="text-[11px] text-slate-400 step-desc">Verifies credit score &ge; 750 and obligation caps</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-mono font-semibold text-slate-500 step-status">Pending</span>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div id="p-step-4" class="p-3 rounded-xl border border-bajaj-border bg-bajaj-dark/40 flex items-center justify-between transition-all">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2 rounded-lg bg-slate-800 text-slate-400 step-icon">
+                                        <i data-lucide="zap" class="w-4 h-4"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white">Step 4: Algorithmic Routing Engine</p>
+                                        <p class="text-[11px] text-slate-400 step-desc">Straight-Through Processing (STP) vs. Risk Review Reroute</p>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-mono font-semibold text-slate-500 step-status">Pending</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Underwriting Decision Output Result Card -->
+                    <div id="underwritingResultCard" class="hidden bg-bajaj-card border border-bajaj-border rounded-2xl p-6 shadow-xl relative overflow-hidden transition-all">
+                        <!-- Dynamic Header -->
+                        <div id="resultHeader" class="flex items-start justify-between pb-4 border-b border-bajaj-border">
+                            <div>
+                                <span id="resultBadge" class="text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">Status Badge</span>
+                                <h3 id="resultTitle" class="text-xl font-extrabold text-white mt-2">Decision Title</h3>
+                                <p id="resultSubtitle" class="text-xs text-slate-300 mt-1">Sub descriptive text</p>
+                            </div>
+                            <div id="resultIconBox" class="p-3 rounded-2xl">
+                                <i data-lucide="check-circle" class="w-8 h-8"></i>
+                            </div>
+                        </div>
+
+                        <!-- Financial Details Grid -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 my-5 p-4 bg-bajaj-dark/60 rounded-xl border border-bajaj-border">
+                            <div>
+                                <p class="text-[11px] text-slate-400">Sanctioned Amount</p>
+                                <p id="outSanctionAmount" class="text-base font-bold text-white">₹0</p>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-slate-400">Monthly EMI</p>
+                                <p id="outMonthlyEMI" class="text-base font-bold text-bajaj-accent">₹0/mo</p>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-slate-400">Risk Interest Rate</p>
+                                <p id="outInterestRate" class="text-base font-bold text-white">0% p.a.</p>
+                            </div>
+                            <div>
+                                <p class="text-[11px] text-slate-400">Computed DTI</p>
+                                <p id="outDTI" class="text-base font-bold text-white">0%</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Button -->
+                        <div class="flex justify-end">
+                            <button onclick="openSanctionModal()" id="btnViewSanctionLetter" class="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center space-x-2">
+                                <i data-lucide="file-check" class="w-4 h-4"></i>
+                                <span>VIEW & DOWNLOAD e-SANCTION LETTER</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: TAX & YIELD ENGINE ================= -->
+        <section id="tab-tax" class="tab-content hidden space-y-6">
+            <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-6 shadow-xl">
+                <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-bajaj-border gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2 text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">
+                            <i data-lucide="calculator" class="w-4 h-4"></i>
+                            <span>Excel Quantitative Model Replica</span>
+                        </div>
+                        <h2 class="text-xl font-bold text-white">Investor Capital Gains & Net Yield Calculator</h2>
+                        <p class="text-xs text-slate-300 mt-1">Calculates Short-Term Capital Gains (STCG @ 20%) vs. Long-Term Capital Gains (LTCG @ 12.5% under Sec 112A with ₹1.25L exemption).</p>
+                    </div>
+                    <div class="bg-bajaj-dark px-4 py-2 rounded-xl border border-bajaj-border text-xs font-mono text-slate-300">
+                        Excel Formula: <span class="text-amber-400">=IF(Months&lt;12, Gain*0.20, MAX(0, Gain-125000)*0.125)</span>
+                    </div>
+                </div>
+
+                <!-- Input Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 my-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Initial Stock Investment (₹)</label>
+                        <input type="number" id="taxInvestAmount" value="200000" step="10000" oninput="calculateTaxModel()" class="w-full bg-bajaj-dark border border-bajaj-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-bajaj-accent">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Realized Capital Gain (₹)</label>
+                        <input type="number" id="taxGainAmount" value="50000" step="5000" oninput="calculateTaxModel()" class="w-full bg-bajaj-dark border border-bajaj-border rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-bajaj-accent">
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Holding Period (Months)</label>
+                            <span id="taxMonthsDisplay" class="text-xs font-bold text-bajaj-accent bg-bajaj-dark px-2 py-0.5 rounded border border-bajaj-border">18 Months (LTCG)</span>
+                        </div>
+                        <input type="range" id="taxHoldingMonths" min="1" max="24" value="18" oninput="calculateTaxModel()" class="w-full accent-bajaj-accent cursor-pointer mt-2">
+                        <div class="flex justify-between text-[10px] text-slate-500 font-semibold mt-1">
+                            <span>1 Month (STCG 20%)</span>
+                            <span class="text-amber-400">12 Months (Threshold)</span>
+                            <span>24 Months (LTCG 12.5%)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scenario Comparison Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- STCG Card -->
+                    <div id="cardSTCG" class="bg-bajaj-dark/70 border border-bajaj-border rounded-2xl p-5 relative overflow-hidden transition-all">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20">CASE A: SHORT-TERM (&lt; 12 MONTHS)</span>
+                            <i data-lucide="clock" class="w-5 h-5 text-rose-400"></i>
+                        </div>
+                        <h3 class="text-lg font-extrabold text-white">Short-Term Capital Gains (STCG)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Taxed at 20% on full gains without exemptions</p>
+
+                        <div class="space-y-2 mt-4 pt-4 border-t border-bajaj-border text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Taxable Gain Amount:</span>
+                                <span id="stcgTaxableGain" class="font-mono font-semibold text-white">₹50,000</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Applicable Tax Rate:</span>
+                                <span class="font-mono font-semibold text-rose-400">20.0%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Calculated Tax Liability:</span>
+                                <span id="stcgTaxPayable" class="font-mono font-bold text-rose-400">₹10,000</span>
+                            </div>
+                            <div class="flex justify-between text-sm pt-2 border-t border-bajaj-border/50">
+                                <span class="font-bold text-slate-200">Net Realized Yield:</span>
+                                <span id="stcgNetYield" class="font-mono font-extrabold text-emerald-400">20.0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- LTCG Card -->
+                    <div id="cardLTCG" class="bg-bajaj-dark/70 border-2 border-emerald-500/50 rounded-2xl p-5 relative overflow-hidden transition-all glow-effect-success">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">CASE B: LONG-TERM (&ge; 12 MONTHS)</span>
+                            <i data-lucide="award" class="w-5 h-5 text-emerald-400"></i>
+                        </div>
+                        <h3 class="text-lg font-extrabold text-white">Long-Term Capital Gains (Sec 112A)</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Taxed at 12.5% with ₹1,25,000 annual exemption limit</p>
+
+                        <div class="space-y-2 mt-4 pt-4 border-t border-bajaj-border text-xs">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Section 112A Exemption Applied:</span>
+                                <span id="ltcgExemptionApplied" class="font-mono font-semibold text-emerald-400">₹50,000 (Fully Exempt)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Taxable Gain after Exemption:</span>
+                                <span id="ltcgTaxableGain" class="font-mono font-semibold text-white">₹0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Calculated Tax Liability:</span>
+                                <span id="ltcgTaxPayable" class="font-mono font-bold text-emerald-400">₹0</span>
+                            </div>
+                            <div class="flex justify-between text-sm pt-2 border-t border-bajaj-border/50">
+                                <span class="font-bold text-slate-200">Net Realized Yield:</span>
+                                <span id="ltcgNetYield" class="font-mono font-extrabold text-emerald-400">25.0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Strategic Tax Alpha Summary Banner -->
+                <div class="mt-6 p-4 bg-gradient-to-r from-bajaj-navy to-bajaj-card rounded-xl border border-bajaj-accent/30 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-2.5 rounded-xl bg-bajaj-accent/20 text-bajaj-accent">
+                            <i data-lucide="trending-up" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-white">Tax-Aware Portfolio Alpha Advantage</p>
+                            <p id="taxAlphaText" class="text-xs text-slate-300">Holding assets past 12 months increases net investor yield by +500 bps (from 20% to 25%) by utilizing the Section 112A exemption limit.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: POWER BI ANALYTICS ================= -->
+        <section id="tab-analytics" class="tab-content hidden space-y-6">
+            
+            <!-- KPI Overview Grid -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-4 shadow-xl">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                        <span>Net App Installs</span>
+                        <i data-lucide="smartphone" class="w-4 h-4 text-bajaj-accent"></i>
+                    </div>
+                    <p class="text-2xl font-extrabold text-white">86.63M</p>
+                    <div class="flex items-center space-x-1 text-xs text-emerald-400 mt-1 font-semibold">
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        <span>28.6% CAGR (FY24-26)</span>
+                    </div>
+                </div>
+
+                <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-4 shadow-xl">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                        <span>Customer Franchise</span>
+                        <i data-lucide="users" class="w-4 h-4 text-blue-400"></i>
+                    </div>
+                    <p class="text-2xl font-extrabold text-white">119.33M</p>
+                    <div class="flex items-center space-x-1 text-xs text-emerald-400 mt-1 font-semibold">
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        <span>19.4% CAGR (FY24-26)</span>
+                    </div>
+                </div>
+
+                <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-4 shadow-xl">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                        <span>Total AUM</span>
+                        <i data-lucide="vault" class="w-4 h-4 text-purple-400"></i>
+                    </div>
+                    <p class="text-2xl font-extrabold text-white">₹5.10L Cr</p>
+                    <div class="flex items-center space-x-1 text-xs text-emerald-400 mt-1 font-semibold">
+                        <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
+                        <span>24.2% CAGR (FY24-26)</span>
+                    </div>
+                </div>
+
+                <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-4 shadow-xl">
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+                        <span>Cost-to-Income Ratio</span>
+                        <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-400"></i>
+                    </div>
+                    <p class="text-2xl font-extrabold text-white">33.1%</p>
+                    <div class="flex items-center space-x-1 text-xs text-emerald-400 mt-1 font-semibold">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>vs Industry Avg ~48%</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Chart 1: Clustered Bar Chart -->
+                <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between pb-4 border-b border-bajaj-border mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Visual 1: App Installs vs. Customer Base</h3>
+                            <p class="text-xs text-slate-400">Measures digital top-of-funnel conversion (Millions)</p>
+                        </div>
+                        <span class="text-xs bg-bajaj-navy text-bajaj-accent border border-bajaj-accent/30 px-2 py-1 rounded">Power BI Replica</span>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="chartAppFranchise"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: AUM Growth -->
+                <div class="bg-bajaj-card border border-bajaj-border rounded-2xl p-6 shadow-xl">
+                    <div class="flex items-center justify-between pb-4 border-b border-bajaj-border mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Visual 2: Assets Under Management Trajectory</h3>
+                            <p class="text-xs text-slate-400">Proves operating leverage without linear branch cost (₹ Crores)</p>
+                        </div>
+                        <span class="text-xs bg-bajaj-navy text-bajaj-accent border border-bajaj-accent/30 px-2 py-1 rounded">Power BI Replica</span>
+                    </div>
+                    <div class="relative h-64">
+                        <canvas id="chartAUM"></canvas>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Presenter Script Assistant Overlay / Drawer -->
+    <div id="scriptDrawer" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-bajaj-card border-l border-bajaj-border shadow-2xl z-50 transform translate-x-full transition-transform duration-300 p-6 overflow-y-auto">
+        <div class="flex items-center justify-between pb-4 border-b border-bajaj-border mb-4">
+            <div class="flex items-center space-x-2 text-amber-400 font-bold">
+                <i data-lucide="presentation" class="w-5 h-5"></i>
+                <span>Presenter Assistant Script</span>
+            </div>
+            <button onclick="toggleScriptDrawer()" class="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+            
+            <div class="p-3 bg-bajaj-dark rounded-xl border border-bajaj-border">
+                <p class="font-bold text-amber-400 mb-1">Slide 1: Title & Strategic Introduction</p>
+                <p class="text-slate-300 italic">"Good morning Sir. Today we present our case study on Bajaj Finserv's fintech transformation—evaluating its omni-channel architecture, algorithmic underwriting, and investor tax modeling."</p>
+            </div>
+
+            <div class="p-3 bg-bajaj-dark rounded-xl border border-bajaj-border">
+                <p class="font-bold text-amber-400 mb-1">Slide 2: Methodology & Tools</p>
+                <p class="text-slate-300 italic">"We ingested 3 years of audited investor disclosures, normalized customer acquisition metrics in Excel, and built Power BI dashboards to test operating leverage."</p>
+            </div>
+
+            <div class="p-3 bg-bajaj-dark rounded-xl border border-bajaj-border">
+                <p class="font-bold text-amber-400 mb-1">Slide 3: Underwriting Workflow (Live Demo)</p>
+                <p class="text-slate-300 italic">"In our live simulator, applicant data flows through DigiLocker e-KYC and Account Aggregator APIs. If CIBIL is &ge; 750 and DTI is &le; 40%, straight-through processing issues an instant e-sanction in milliseconds!"</p>
+            </div>
+
+            <div class="p-3 bg-bajaj-dark rounded-xl border border-bajaj-border">
+                <p class="font-bold text-amber-400 mb-1">Slide 4: Analytics & Operating Leverage</p>
+                <p class="text-slate-300 italic">"Net app installs grew at 28.6% CAGR to 86.6M, driving active customer franchise past 119M and AUM past ₹5.10 Lakh Cr while keeping cost-to-income at 33.1%."</p>
+            </div>
+
+            <div class="p-3 bg-bajaj-dark rounded-xl border border-bajaj-border">
+                <p class="font-bold text-amber-400 mb-1">Slide 5: Tax & Yield Engine</p>
+                <p class="text-slate-300 italic">"Holding assets past 12 months triggers Section 112A exemptions, eliminating tax liability on gains under ₹1.25L and boosting investor net yield from 20% to 25%."</p>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Sanction Letter Modal -->
+    <div id="sanctionModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white text-slate-900 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative overflow-hidden">
+            <button onclick="closeSanctionModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-700">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Letterhead -->
+            <div class="border-b-2 border-bajaj-navy pb-4 mb-4 flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-black text-bajaj-navy tracking-tight">BAJAJ FINANCE LIMITED</h2>
+                    <p class="text-[10px] text-slate-500 font-semibold">FINTECH DIGITAL LENDING DIVISION</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">INSTANT e-SANCTION</span>
+                    <p class="text-[10px] text-slate-400 mt-1" id="docRefNo">REF: BFL/2026/948271</p>
+                </div>
+            </div>
+
+            <!-- Letter Content -->
+            <div class="space-y-3 text-xs leading-relaxed">
+                <p>Dear <strong id="modalCustName">Rahul Sharma</strong>,</p>
+                <p>We are pleased to inform you that your personal loan request has been <strong>ALGORITHMICALLY APPROVED</strong> via Bajaj Finserv's Straight-Through Processing (STP) engine.</p>
+
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-slate-700 font-mono">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Sanctioned Limit:</span>
+                        <strong class="text-sm text-bajaj-navy" id="modalSanctionAmt">₹4,50,000</strong>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Monthly EMI:</span>
+                        <strong class="text-sm text-bajaj-navy" id="modalEMI">₹14,920/mo</strong>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Assigned Interest Rate:</span>
+                        <strong class="text-slate-900" id="modalRate">11.5% p.a.</strong>
+                    </div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Tenure:</span>
+                        <strong class="text-slate-900" id="modalTenure">36 Months</strong>
+                    </div>
+                </div>
+
+                <p class="text-[11px] text-slate-500">Loan funds will be disbursed to your Aadhaar-linked bank account via Account Aggregator mandate upon e-Sign completion.</p>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="mt-6 pt-4 border-t border-slate-200 flex justify-end space-x-2">
+                <button onclick="closeSanctionModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">Close</button>
+                <button onclick="alert('e-Sanction Letter downloaded successfully as PDF!'); closeSanctionModal();" class="px-4 py-2 bg-bajaj-navy hover:bg-bajaj-blue text-white rounded-xl font-bold text-xs flex items-center space-x-1.5">
+                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                    <span>Download PDF</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switch Logic
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('tab-' + tabName).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-bajaj-blue', 'text-white', 'shadow');
+                btn.classList.add('text-slate-400');
+            });
+
+            const activeBtn = document.getElementById('btn-tab-' + tabName);
+            activeBtn.classList.add('bg-bajaj-blue', 'text-white', 'shadow');
+            activeBtn.classList.remove('text-slate-400');
+
+            if (tabName === 'analytics') {
+                initCharts();
+            }
+        }
+
+        // Script Drawer Toggle
+        function toggleScriptDrawer() {
+            const drawer = document.getElementById('scriptDrawer');
+            drawer.classList.toggle('translate-x-full');
+        }
+
+        // Live Calculated Fields in Simulator
+        function updateCalculatedFields() {
+            const income = parseFloat(document.getElementById('monthlyIncome').value) || 1;
+            const existingEmi = parseFloat(document.getElementById('existingEMIs').value) || 0;
+            const amount = parseFloat(document.getElementById('loanAmount').value) || 0;
+            const tenure = parseInt(document.getElementById('loanTenure').value) || 36;
+            const cibil = parseInt(document.getElementById('cibilScore').value) || 750;
+
+            // Simple EMI calculation formula (Approx 11.5% - 15% rate)
+            const annualRate = cibil >= 750 ? 0.115 : 0.155;
+            const monthlyRate = annualRate / 12;
+            const newEMI = Math.round((amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1));
+
+            const totalMonthlyObligation = existingEmi + newEMI;
+            const dti = ((totalMonthlyObligation / income) * 100).toFixed(1);
+
+            const dtiDisplay = document.getElementById('estimatedDTIDisplay');
+            if (dti <= 40 && cibil >= 750) {
+                dtiDisplay.className = "font-mono font-bold text-emerald-400";
+                dtiDisplay.innerText = `${dti}% (Passes \u2264 40% & CIBIL \u2265 750)`;
+            } else {
+                dtiDisplay.className = "font-mono font-bold text-rose-400";
+                dtiDisplay.innerText = `${dti}% (${dti > 40 ? 'High DTI > 40%' : 'Low CIBIL < 750'})`;
+            }
+        }
+
+        // Run Algorithmic Underwriting Pipeline Simulation
+        function runUnderwritingSimulator(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btnSubmitSimulator');
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+
+            const resultCard = document.getElementById('underwritingResultCard');
+            resultCard.classList.add('hidden');
+
+            const badge = document.getElementById('pipelineStatusBadge');
+            badge.className = "text-xs bg-amber-500/20 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/30 animate-pulse";
+            badge.innerText = "Processing Algorithmic Pipeline...";
+
+            // Reset pipeline UI steps
+            const steps = [1, 2, 3, 4];
+            steps.forEach(s => {
+                const stepEl = document.getElementById(`p-step-${s}`);
+                stepEl.className = "p-3 rounded-xl border border-bajaj-border bg-bajaj-dark/40 flex items-center justify-between transition-all";
+                stepEl.querySelector('.step-status').innerText = "Pending";
+                stepEl.querySelector('.step-status').className = "text-xs font-mono font-semibold text-slate-500 step-status";
+            });
+
+            // Sequential Execution Simulation
+            setTimeout(() => { setStepState(1, 'Active', 'Verifying DigiLocker e-KYC...'); }, 300);
+            setTimeout(() => { setStepState(1, 'Complete', 'Aadhaar Verified'); }, 1000);
+
+            setTimeout(() => { setStepState(2, 'Active', 'Reading Bank Cash Flows...'); }, 1200);
+            setTimeout(() => { setStepState(2, 'Complete', 'Cash Flow Validated'); }, 2000);
+
+            setTimeout(() => { setStepState(3, 'Active', 'Checking CIBIL Scorecard...'); }, 2200);
+            setTimeout(() => { setStepState(3, 'Complete', 'Bureau Checked'); }, 3000);
+
+            setTimeout(() => { setStepState(4, 'Active', 'Evaluating Underwriting Gate...'); }, 3200);
+            
+            setTimeout(() => { 
+                setStepState(4, 'Complete', 'Decision Finalized'); 
+                badge.className = "text-xs bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/30";
+                badge.innerText = "Pipeline Execution Complete";
+                
+                displayUnderwritingOutput();
+
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            }, 3800);
+        }
+
+        function setStepState(stepNum, state, statusMsg) {
+            const stepEl = document.getElementById(`p-step-${stepNum}`);
+            const statusText = stepEl.querySelector('.step-status');
+            
+            if (state === 'Active') {
+                stepEl.className = "p-3 rounded-xl border border-bajaj-accent bg-bajaj-navy/50 flex items-center justify-between transition-all glow-effect";
+                statusText.className = "text-xs font-mono font-bold text-bajaj-accent animate-pulse step-status";
+                statusText.innerText = statusMsg;
+            } else if (state === 'Complete') {
+                stepEl.className = "p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/20 flex items-center justify-between transition-all";
+                statusText.className = "text-xs font-mono font-bold text-emerald-400 step-status";
+                statusText.innerText = "\u2713 " + statusMsg;
+            }
+        }
+
+        // Display Final Underwriting Decision
+        function displayUnderwritingOutput() {
+            const name = document.getElementById('custName').value;
+            const income = parseFloat(document.getElementById('monthlyIncome').value);
+            const existingEmi = parseFloat(document.getElementById('existingEMIs').value);
+            const amount = parseFloat(document.getElementById('loanAmount').value);
+            const tenure = parseInt(document.getElementById('loanTenure').value);
+            const cibil = parseInt(document.getElementById('cibilScore').value);
+
+            const annualRate = cibil >= 750 ? 0.115 : 0.155;
+            const monthlyRate = annualRate / 12;
+            const newEMI = Math.round((amount * monthlyRate * Math.pow(1 + monthlyRate, tenure)) / (Math.pow(1 + monthlyRate, tenure) - 1));
+            const dti = (((existingEmi + newEMI) / income) * 100).toFixed(1);
+
+            const resultCard = document.getElementById('underwritingResultCard');
+            const resultBadge = document.getElementById('resultBadge');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultSubtitle = document.getElementById('resultSubtitle');
+            const resultIconBox = document.getElementById('resultIconBox');
+            const btnSanction = document.getElementById('btnViewSanctionLetter');
+
+            resultCard.classList.remove('hidden');
+
+            document.getElementById('outSanctionAmount').innerText = "₹" + amount.toLocaleString('en-IN');
+            document.getElementById('outMonthlyEMI').innerText = "₹" + newEMI.toLocaleString('en-IN') + "/mo";
+            document.getElementById('outInterestRate').innerText = (annualRate * 100).toFixed(1) + "% p.a.";
+            document.getElementById('outDTI').innerText = dti + "%";
+
+            // Approval Rule Evaluation: CIBIL >= 750 & DTI <= 40%
+            if (cibil >= 750 && dti <= 40) {
+                resultCard.className = "bg-bajaj-card border-2 border-emerald-500/50 rounded-2xl p-6 shadow-xl relative overflow-hidden transition-all glow-effect-success";
+                resultBadge.className = "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/30";
+                resultBadge.innerText = "INSTANT SANCTIONED (Straight-Through Processing)";
+                resultTitle.innerText = "Congratulations! Loan Pre-Approved";
+                resultSubtitle.innerText = `Applicant ${name} passed algorithmic underwriting rules (CIBIL ${cibil} \u2265 750 & DTI ${dti}% \u2264 40%).`;
+                resultIconBox.className = "p-3 rounded-2xl bg-emerald-500/20 text-emerald-400";
+                btnSanction.classList.remove('hidden');
+            } else {
+                resultCard.className = "bg-bajaj-card border-2 border-amber-500/50 rounded-2xl p-6 shadow-xl relative overflow-hidden transition-all glow-effect-warning";
+                resultBadge.className = "text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/30";
+                resultBadge.innerText = "REROUTED TO MANUAL RISK REVIEW";
+                resultTitle.innerText = "Application Under Credit Officer Review";
+                resultSubtitle.innerText = `Automated STP bypassed due to ${cibil < 750 ? 'CIBIL score < 750' : 'High Debt-to-Income ratio > 40%'}. Rerouted to Risk Manager.`;
+                resultIconBox.className = "p-3 rounded-2xl bg-amber-500/20 text-amber-400";
+                btnSanction.classList.add('hidden');
+            }
+        }
+
+        // Sanction Modal Control
+        function openSanctionModal() {
+            document.getElementById('modalCustName').innerText = document.getElementById('custName').value;
+            document.getElementById('modalSanctionAmt').innerText = document.getElementById('outSanctionAmount').innerText;
+            document.getElementById('modalEMI').innerText = document.getElementById('outMonthlyEMI').innerText;
+            document.getElementById('modalRate').innerText = document.getElementById('outInterestRate').innerText;
+            document.getElementById('modalTenure').innerText = document.getElementById('loanTenure').value + " Months";
+            document.getElementById('sanctionModal').classList.remove('hidden');
+        }
+
+        function closeSanctionModal() {
+            document.getElementById('sanctionModal').classList.add('hidden');
+        }
+
+        // Tax Engine Calculations (Matching Excel Model)
+        function calculateTaxModel() {
+            const invest = parseFloat(document.getElementById('taxInvestAmount').value) || 200000;
+            const gain = parseFloat(document.getElementById('taxGainAmount').value) || 50000;
+            const months = parseInt(document.getElementById('taxHoldingMonths').value) || 18;
+
+            const monthsDisplay = document.getElementById('taxMonthsDisplay');
+            monthsDisplay.innerText = `${months} Month${months > 1 ? 's' : ''} (${months < 12 ? 'STCG' : 'LTCG'})`;
+
+            // STCG Case
+            const stcgTax = gain * 0.20;
+            const stcgNetYield = (((gain - stcgTax) / invest) * 100).toFixed(1);
+
+            document.getElementById('stcgTaxableGain').innerText = "₹" + gain.toLocaleString('en-IN');
+            document.getElementById('stcgTaxPayable').innerText = "₹" + stcgTax.toLocaleString('en-IN');
+            document.getElementById('stcgNetYield').innerText = stcgNetYield + "%";
+
+            // LTCG Case (Sec 112A: ₹1,25,000 Exemption)
+            const exemption = 125000;
+            const taxableLTCGGain = Math.max(0, gain - exemption);
+            const ltcgTax = taxableLTCGGain * 0.125;
+            const ltcgNetYield = (((gain - ltcgTax) / invest) * 100).toFixed(1);
+
+            document.getElementById('ltcgExemptionApplied').innerText = "₹" + Math.min(gain, exemption).toLocaleString('en-IN') + " (Exempt)";
+            document.getElementById('ltcgTaxableGain').innerText = "₹" + taxableLTCGGain.toLocaleString('en-IN');
+            document.getElementById('ltcgTaxPayable').innerText = "₹" + ltcgTax.toLocaleString('en-IN');
+            document.getElementById('ltcgNetYield').innerText = ltcgNetYield + "%";
+
+            // Active Highlight
+            const cardSTCG = document.getElementById('cardSTCG');
+            const cardLTCG = document.getElementById('cardLTCG');
+
+            if (months < 12) {
+                cardSTCG.className = "bg-bajaj-dark/70 border-2 border-rose-500/50 rounded-2xl p-5 relative overflow-hidden transition-all glow-effect-warning";
+                cardLTCG.className = "bg-bajaj-dark/70 border border-bajaj-border opacity-60 rounded-2xl p-5 relative overflow-hidden transition-all";
+            } else {
+                cardLTCG.className = "bg-bajaj-dark/70 border-2 border-emerald-500/50 rounded-2xl p-5 relative overflow-hidden transition-all glow-effect-success";
+                cardSTCG.className = "bg-bajaj-dark/70 border border-bajaj-border opacity-60 rounded-2xl p-5 relative overflow-hidden transition-all";
+            }
+        }
+
+        // Power BI Replica Charts Initialization
+        let chartInstance1 = null;
+        let chartInstance2 = null;
+
+        function initCharts() {
+            if (chartInstance1) return; // Prevent duplicate initialization
+
+            // Chart 1: App Installs vs Customer Franchise
+            const ctx1 = document.getElementById('chartAppFranchise').getContext('2d');
+            chartInstance1 = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['FY24', 'FY25', 'FY26'],
+                    datasets: [
+                        {
+                            label: 'Net App Installs (M)',
+                            data: [52.41, 70.57, 86.63],
+                            backgroundColor: '#00A8FF',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Customer Franchise (M)',
+                            data: [83.64, 101.82, 119.33],
+                            backgroundColor: '#002B5B',
+                            borderColor: '#0056B3',
+                            borderWidth: 1,
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94A3B8', font: { family: 'Plus Jakarta Sans', size: 11 } } }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: '#233554' }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+
+            // Chart 2: AUM Trajectory
+            const ctx2 = document.getElementById('chartAUM').getContext('2d');
+            chartInstance2 = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: ['FY24', 'FY25', 'FY26'],
+                    datasets: [{
+                        label: 'Assets Under Management (₹ Cr)',
+                        data: [330615, 416661, 509975],
+                        backgroundColor: 'rgba(0, 168, 255, 0.85)',
+                        borderColor: '#00A8FF',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94A3B8', font: { family: 'Plus Jakarta Sans', size: 11 } } }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: '#94A3B8' } },
+                        y: { grid: { color: '#233554' }, ticks: { color: '#94A3B8' } }
+                    }
+                }
+            });
+        }
+
+        // Initialize Lucide icons & default fields on load
+        window.onload = function() {
+            lucide.createIcons();
+            updateCalculatedFields();
+            calculateTaxModel();
+        };
+    </script>
+</body>
+</html>
